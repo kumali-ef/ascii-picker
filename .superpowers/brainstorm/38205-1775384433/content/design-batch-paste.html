@@ -1,0 +1,52 @@
+<h2>Updated: Names Tab with Batch Paste</h2>
+<p class="subtitle">Support for pasting multiple names at once, split by tab or newline</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Single Add (as before)</div>
+    <div class="mockup-body" style="background:#111;padding:16px;font-family:monospace;font-size:11px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#1a1a1a;border-radius:4px;">
+          <span style="color:#ccc;">Alice</span>
+          <span style="color:#555;font-size:10px;">✏️ 🗑️</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#1a1a1a;border-radius:4px;">
+          <span style="color:#ccc;">Bob</span>
+          <span style="color:#555;font-size:10px;">✏️ 🗑️</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <input style="flex:1;background:#0a0a0a;border:1px solid #333;border-radius:4px;padding:6px 8px;color:#ccc;font-size:11px;" placeholder="New name...">
+          <button style="background:#0f02;border:1px solid #0f0;border-radius:4px;padding:4px 10px;color:#0f0;font-size:11px;">+ Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">Batch Paste (new)</div>
+    <div class="mockup-body" style="background:#111;padding:16px;font-family:monospace;font-size:11px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="color:#888;font-size:10px;">Paste names separated by tab or newline:</div>
+        <textarea style="width:100%;height:80px;background:#0a0a0a;border:1px solid #333;border-radius:4px;padding:8px;color:#ccc;font-size:11px;font-family:monospace;resize:vertical;" placeholder="Alice&#10;Bob&#10;Carol&#10;(or: Alice&#9;Bob&#9;Carol)"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#555;font-size:9px;">Splits on tab (\\t) or newline (\\n)</span>
+          <button style="background:#0f02;border:1px solid #0f0;border-radius:4px;padding:4px 12px;color:#0f0;font-size:11px;">Import All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Behavior</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family:monospace;font-size:11px;padding:16px;color:#aaa;">
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;">
+        <li><span style="color:#0f0;">✓</span> Paste into textarea → split by <code style="color:#e8c547;">\\t</code> or <code style="color:#e8c547;">\\n</code></li>
+        <li><span style="color:#0f0;">✓</span> Trim whitespace, skip empty entries</li>
+        <li><span style="color:#0f0;">✓</span> Skip duplicates (already in list)</li>
+        <li><span style="color:#0f0;">✓</span> "Import All" replaces existing list (with confirmation if names exist)</li>
+        <li><span style="color:#0f0;">✓</span> Both single-add input and batch textarea available simultaneously</li>
+      </ul>
+    </div>
+  </div>
+</div>

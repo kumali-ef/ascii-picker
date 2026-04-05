@@ -1,0 +1,99 @@
+<h2>Design: ASCII Animation Engine</h2>
+<p class="subtitle">The core rendering pipeline — how names become ASCII art</p>
+
+<div class="section">
+  <h3>Rendering Pipeline</h3>
+  <div class="mockup">
+    <div class="mockup-header">How a name becomes ASCII art</div>
+    <div class="mockup-body" style="font-family:monospace;font-size:12px;line-height:1.6;padding:20px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="background:#2a2a4a;border-radius:8px;padding:10px 16px;color:#aaa;min-width:140px;text-align:center;">
+            <div style="font-size:10px;color:#666;margin-bottom:4px;">Step 1</div>
+            <div style="color:#e8c547;font-size:16px;font-family:Georgia,serif;">Alice</div>
+            <div style="font-size:9px;color:#555;margin-top:2px;">Render name as large text<br>on hidden canvas</div>
+          </div>
+          <div style="color:#555;font-size:18px;">→</div>
+          <div style="background:#2a2a4a;border-radius:8px;padding:10px 16px;color:#aaa;min-width:140px;text-align:center;">
+            <div style="font-size:10px;color:#666;margin-bottom:4px;">Step 2</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px;font-size:10px;">
+              <span style="color:#333;">0.0</span><span style="color:#555;">0.2</span><span style="color:#777;">0.5</span><span style="color:#999;">0.7</span><span style="color:#333;">0.0</span>
+              <span style="color:#555;">0.1</span><span style="color:#bbb;">0.9</span><span style="color:#999;">0.6</span><span style="color:#bbb;">0.8</span><span style="color:#555;">0.1</span>
+            </div>
+            <div style="font-size:9px;color:#555;margin-top:4px;">Sample brightness at<br>grid positions</div>
+          </div>
+          <div style="color:#555;font-size:18px;">→</div>
+          <div style="background:#2a2a4a;border-radius:8px;padding:10px 16px;color:#aaa;min-width:180px;text-align:center;">
+            <div style="font-size:10px;color:#666;margin-bottom:4px;">Step 3</div>
+            <div style="color:#0f0;font-family:Georgia,serif;font-size:14px;letter-spacing:1px;">
+              .<span style="font-weight:800;">*</span><span style="font-style:italic;">A</span><span style="font-weight:800;">#</span> <span style="font-weight:300;">:</span><span style="font-weight:800;">@</span><span style="font-style:italic;">e</span><span style="font-weight:300;">.</span>
+            </div>
+            <div style="font-size:9px;color:#555;margin-top:4px;">Match to character palette<br>(brightness + width via pretext)</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Animation Cycle</h3>
+  <div class="mockup">
+    <div class="mockup-header">Slot-machine easing over 5 seconds</div>
+    <div class="mockup-body" style="font-family:monospace;font-size:12px;padding:20px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#666;width:60px;">0.0s</span>
+          <span style="color:#0f0;">Alice → Bob → Carol → Dave →</span>
+          <span style="color:#555;font-size:10px;">~50ms per swap (fast)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#666;width:60px;">2.0s</span>
+          <span style="color:#0f0;">Eve → Frank →</span>
+          <span style="color:#555;font-size:10px;">~200ms per swap</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#666;width:60px;">3.5s</span>
+          <span style="color:#0f0;">Alice → ... →</span>
+          <span style="color:#555;font-size:10px;">~500ms per swap (slowing)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#666;width:60px;">4.5s</span>
+          <span style="color:#0f0;">Dave →</span>
+          <span style="color:#555;font-size:10px;">~1000ms (almost stopped)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#888;width:60px;">5.0s</span>
+          <span style="color:#0f0;font-weight:bold;font-size:14px;">★ BOB ★</span>
+          <span style="color:#e8c547;font-size:10px;">Winner! Flash/pulse effect</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,0.05);border-radius:4px;font-size:10px;color:#666;">
+        Winner is pre-determined at Start. The easing function (cubic ease-out) controls the deceleration. Names are picked randomly during cycling but the sequence is rigged to land on the winner.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Character Palette</h3>
+  <div class="mockup">
+    <div class="mockup-header">Built once on load, cached for animation</div>
+    <div class="mockup-body" style="font-family:monospace;font-size:11px;padding:16px;color:#aaa;">
+      <div style="margin-bottom:8px;">
+        <span style="color:#e8c547;">Charset:</span> .,:;!+-=*#@%&amp;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#e8c547;">Fonts:</span> Georgia × [300, 500, 800] × [normal, italic] = 6 variants
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#e8c547;">Per character:</span> measure width (pretext) + estimate brightness (canvas) → sorted by brightness
+      </div>
+      <div>
+        <span style="color:#e8c547;">Lookup:</span> binary search for target brightness, then score nearby candidates by brightness + width match
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<h2>Design: PWA & Project Structure</h2>
+<p class="subtitle">File organization, service worker, and installability</p>
+
+<div class="section">
+  <h3>Project Structure</h3>
+  <div class="mockup">
+    <div class="mockup-header">Vite + Vanilla JS</div>
+    <div class="mockup-body" style="font-family:monospace;font-size:11px;padding:16px;color:#aaa;line-height:1.8;">
+<pre style="color:#aaa;margin:0;">ascii-picker/
+├── index.html              <span style="color:#555;"># Main page</span>
+├── vite.config.js          <span style="color:#555;"># Vite config + PWA plugin</span>
+├── package.json
+├── public/
+│   ├── favicon.svg         <span style="color:#555;"># App icon</span>
+│   ├── icon-192.png
+│   └── icon-512.png
+└── src/
+    ├── main.js             <span style="color:#555;"># Entry: init theme, render, attach events</span>
+    ├── style.css           <span style="color:#555;"># All styles + theme variables</span>
+    ├── ascii-renderer.js   <span style="color:#555;"># Canvas→ASCII pipeline + pretext palette</span>
+    ├── animation.js        <span style="color:#555;"># Slot-machine cycling + easing logic</span>
+    ├── names.js            <span style="color:#555;"># Name CRUD + localStorage</span>
+    ├── settings.js         <span style="color:#555;"># Duration/theme/grid prefs + localStorage</span>
+    ├── modal.js            <span style="color:#555;"># Modal open/close/tab logic</span>
+    └── theme.js            <span style="color:#555;"># System preference detection + toggle</span></pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>PWA Setup</h3>
+  <div class="mockup">
+    <div class="mockup-header">vite-plugin-pwa</div>
+    <div class="mockup-body" style="font-family:monospace;font-size:11px;padding:16px;color:#aaa;">
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;">
+        <li><span style="color:#e8c547;">Plugin:</span> <span style="color:#0f0;">vite-plugin-pwa</span> — auto-generates service worker + manifest</li>
+        <li><span style="color:#e8c547;">Strategy:</span> <span style="color:#0f0;">generateSW</span> — Workbox auto-caches all assets</li>
+        <li><span style="color:#e8c547;">Manifest:</span> name, icons (192 + 512), theme_color, background_color, display: standalone</li>
+        <li><span style="color:#e8c547;">Offline:</span> Full offline support — all assets cached on first visit</li>
+        <li><span style="color:#e8c547;">Install:</span> "Add to Home Screen" prompt on mobile/desktop</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key Dependencies</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family:monospace;font-size:11px;padding:16px;color:#aaa;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div><span style="color:#e8c547;">@chenglou/pretext</span> <span style="color:#555;">— proportional text measurement for ASCII character width matching</span></div>
+        <div><span style="color:#e8c547;">vite</span> <span style="color:#555;">— build tool + dev server</span></div>
+        <div><span style="color:#e8c547;">vite-plugin-pwa</span> <span style="color:#555;">— auto-generates manifest + service worker</span></div>
+      </div>
+      <div style="margin-top:10px;color:#555;font-size:10px;">That's it. No framework, no UI library, no other runtime deps.</div>
+    </div>
+  </div>
+</div>

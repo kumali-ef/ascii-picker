@@ -1,0 +1,84 @@
+<h2>App Layout — Which structure feels right?</h2>
+<p class="subtitle">The ASCII animation area is the hero. Where should the controls live?</p>
+
+<div class="cards">
+  <!-- Option A: Centered Minimal -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;font-family:monospace;color:#ccc;font-size:11px;">
+        <div style="font-size:9px;color:#555;letter-spacing:2px;">🎯 STANDUP PICKER</div>
+        <div style="border:1px solid #333;border-radius:8px;width:100%;padding:20px 10px;text-align:center;background:#0a0a0a;">
+          <div style="color:#0f0;font-size:16px;font-family:Georgia,serif;letter-spacing:2px;">
+            .:*#@ Alice @#*:.
+          </div>
+          <div style="color:#333;font-size:8px;margin-top:6px;">~ ASCII Animation Area ~</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:8px 24px;color:#0f0;font-size:10px;cursor:pointer;">▶ START</div>
+        <div style="display:flex;gap:8px;font-size:8px;color:#444;">
+          <span>⚙️ Settings</span>
+          <span>👥 Names</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Centered Minimal</h3>
+      <p>Everything stacked vertically, centered. ASCII art is the hero. Controls below. Clean and focused — tap Start, watch the show.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Split Panel -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111;">
+      <div style="display:flex;gap:10px;font-family:monospace;color:#ccc;font-size:11px;">
+        <div style="flex:1;border:1px solid #333;border-radius:8px;padding:12px;text-align:center;background:#0a0a0a;">
+          <div style="color:#0f0;font-size:14px;font-family:Georgia,serif;letter-spacing:1px;">
+            .:*# Bob #*:.
+          </div>
+          <div style="color:#333;font-size:8px;margin-top:4px;">~ Animation ~</div>
+          <div style="margin-top:8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:4px 12px;color:#0f0;font-size:9px;display:inline-block;">▶ START</div>
+        </div>
+        <div style="width:80px;border:1px solid #333;border-radius:8px;padding:8px;background:#0d0d0d;font-size:8px;">
+          <div style="color:#555;margin-bottom:4px;">Names:</div>
+          <div style="color:#0f0;">Alice</div>
+          <div style="color:#0f0;">Bob</div>
+          <div style="color:#0f0;">Carol</div>
+          <div style="font-size:7px;color:#555;margin-top:6px;">⚙️ 5s timer</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Side Panel</h3>
+      <p>Animation takes the main area. A collapsible side panel shows the name list and settings. Good for desktop, collapses on mobile.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Bottom Drawer -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#111;">
+      <div style="display:flex;flex-direction:column;gap:8px;font-family:monospace;color:#ccc;font-size:11px;">
+        <div style="border:1px solid #333;border-radius:8px;width:100%;padding:24px 10px;text-align:center;background:#0a0a0a;">
+          <div style="color:#0f0;font-size:16px;font-family:Georgia,serif;letter-spacing:2px;">
+            .:*#@ Carol @#*:.
+          </div>
+          <div style="color:#333;font-size:8px;margin-top:4px;">~ ASCII Animation Area ~</div>
+        </div>
+        <div style="display:flex;justify-content:center;">
+          <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:6px 20px;color:#0f0;font-size:10px;">▶ START</div>
+        </div>
+        <div style="border:1px solid #333;border-radius:8px 8px 0 0;padding:8px;background:#0d0d0d;font-size:8px;">
+          <div style="text-align:center;color:#555;margin-bottom:4px;">— drag up —</div>
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <span style="color:#0f0;">Alice</span>
+            <span style="color:#0f0;">Bob</span>
+            <span style="color:#0f0;">Carol</span>
+            <span style="color:#555;">+ Add</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Bottom Drawer</h3>
+      <p>Full-screen animation with a bottom drawer for names and settings. Mobile-first feel. Swipe up to manage names, swipe down to dismiss.</p>
+    </div>
+  </div>
+</div>

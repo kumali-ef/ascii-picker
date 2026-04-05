@@ -1,0 +1,62 @@
+<h2>Architecture Approach — How to build the ASCII animation</h2>
+<p class="subtitle">The core challenge: rendering names as proportional ASCII art and animating the cycling</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Canvas-to-ASCII Sampling (Recommended)</h3>
+      <p>Adapts the pretext demo's technique directly. Each name is rendered as large text on a <strong>hidden canvas</strong>, then sampled for brightness at grid positions. Characters are chosen by brightness AND proportional width (via pretext) to fill each row perfectly.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Proven technique from the reference demo</li>
+          <li>Beautiful proportional ASCII art</li>
+          <li>Any name renders correctly regardless of length</li>
+          <li>Rich visual depth with weight/italic variations</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>More complex — canvas sampling + pretext palette</li>
+          <li>Palette build takes ~100ms on first load (one-time cost)</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>FIGlet-style Text Art</h3>
+      <p>Use a FIGlet font library (like figlet.js) to render names as blocky ASCII text. Each character maps to a multi-line ASCII block. Simpler but less refined than the pretext approach.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Simpler implementation</li>
+          <li>Classic retro ASCII look</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Doesn't use pretext (user's requirement)</li>
+          <li>Limited font choices, blocky appearance</li>
+          <li>Long names may overflow</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid: Canvas Sampling + Particle Trails</h3>
+      <p>Same as A, but adds the demo's particle system as a background effect. The name renders via canvas sampling, while particles create ambient movement around and through the text.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Most visually impressive</li>
+          <li>Ambient motion even before pressing Start</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Most complex to build</li>
+          <li>Higher CPU usage on mobile</li>
+          <li>May distract from the name reveal</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
