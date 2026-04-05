@@ -4,11 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ASCII Picker</title>
+  <meta name="description" content="Random standup host picker with ASCII art animation">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-  <div id="app"></div>
+  <header class="header">
+    <div class="header-title">ASCII PICKER</div>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">◑</button>
+      <button class="icon-btn" id="settings-btn" aria-label="Settings" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <div class="art-container">
+    <div class="art-box" id="art-box">
+      <div class="empty-state" id="empty-state">Add names to get started</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="start-btn" id="start-btn" disabled>▶ START</button>
+    <div class="status-text" id="status-text">No names added</div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
