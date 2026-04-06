@@ -1,10 +1,10 @@
-const FONT_SIZE = 14
+const FONT_SIZE = 18
 const PROP_FAMILY = 'Georgia, Palatino, "Times New Roman", serif'
 const CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 const WEIGHTS = [300, 500, 800]
 const STYLES = ['normal', 'italic']
 const CANVAS_MULT = 16
-export const CELL_W = 9
+export const CELL_W = 12
 
 let palette = []
 let paletteReady = false
