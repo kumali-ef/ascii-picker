@@ -181,7 +181,7 @@ body {
 
 .status-text {
   font: 400 12px/1 var(--font-ui);
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 /* === Modal === */
@@ -376,6 +376,21 @@ body {
   font: 500 13px/1 var(--font-ui);
   color: var(--text-dim);
   margin-bottom: 8px;
+}
+
+.title-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font: 500 14px/1.4 var(--font-mono);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--text-dim);
+  border-radius: 6px;
+  outline: none;
+}
+.title-input:focus {
+  border-color: var(--accent);
 }
 
 .duration-row {

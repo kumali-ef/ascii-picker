@@ -1,6 +1,9 @@
 const FONT_SIZE = 18
 const PROP_FAMILY = 'Georgia, Palatino, "Times New Roman", serif'
-const CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const BASE_CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const PREFERRED = 'EFEKTA'
+// Repeat preferred chars so they dominate the palette at every brightness level
+const CHARSET = BASE_CHARSET + PREFERRED.repeat(8)
 const WEIGHTS = [300, 500, 800]
 const STYLES = ['normal', 'italic']
 const CANVAS_MULT = 16
@@ -65,7 +68,10 @@ function findBest(targetB) {
   const e = Math.min(palette.length, lo + 10)
   for (let i = s; i < e; i++) {
     const p = palette[i]
-    const score = Math.abs(p.brightness - targetB)
+    const diff = Math.abs(p.brightness - targetB)
+    // Prefer EFKTA chars — small bonus breaks ties toward them
+    const bonus = PREFERRED.includes(p.char) ? -0.001 : 0
+    const score = diff + bonus
     if (score < bestScore) {
       bestScore = score
       best = p

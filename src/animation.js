@@ -16,8 +16,10 @@ export function buildNameSequence(names, winner, totalSteps) {
   return seq
 }
 
-export function startAnimation(names, duration, onFrame, onComplete) {
-  const winner = names[Math.floor(Math.random() * names.length)]
+export function startAnimation(names, duration, onFrame, onComplete, winner) {
+  if (!winner) {
+    winner = names[Math.floor(Math.random() * names.length)]
+  }
   const estimatedSwaps = Math.max(10, Math.round(duration * 8))
   const sequence = buildNameSequence(names, winner, estimatedSwaps)
 

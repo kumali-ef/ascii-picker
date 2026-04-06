@@ -1,10 +1,11 @@
 import './style.css'
 import { initTheme, toggleTheme } from './theme.js'
 import { getNames, addNames, editName, deleteName } from './names.js'
-import { getDuration, setDuration, getGridSize, setGridSize, GRID_PRESETS } from './settings.js'
+import { getDuration, setDuration, getGridSize, getTitle, setTitle } from './settings.js'
 import { buildPalette, renderNameToAscii, CELL_W } from './ascii-renderer.js'
 import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
+import { getAvailableNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
 
 const artBox = document.getElementById('art-box')
 const emptyState = document.getElementById('empty-state')
@@ -12,6 +13,7 @@ const startBtn = document.getElementById('start-btn')
 const statusText = document.getElementById('status-text')
 const themeToggle = document.getElementById('theme-toggle')
 const settingsBtn = document.getElementById('settings-btn')
+const headerTitle = document.querySelector('.header-title')
 
 let isAnimating = false
 
@@ -23,6 +25,13 @@ themeToggle.addEventListener('click', () => {
   applyTheme()
   themeToggle.title = `Theme: ${newTheme}`
 })
+
+// --- Title ---
+function applyTitle() {
+  const t = getTitle()
+  headerTitle.textContent = t
+  document.title = t
+}
 
 // --- Build palette on load ---
 buildPalette()
@@ -157,9 +166,14 @@ function renderSettingsPanel() {
   if (!panel) return
 
   const duration = getDuration()
-  const gridSize = getGridSize()
+  const currentTitle = getTitle()
 
   panel.innerHTML = `
+    <div class="setting-group">
+      <div class="setting-label">Title</div>
+      <input type="text" class="title-input" id="title-input"
+        value="${currentTitle.replace(/"/g, '&quot;')}" placeholder="ASCII PICKER">
+    </div>
     <div class="setting-group">
       <div class="setting-label">Animation Duration</div>
       <div class="duration-row">
@@ -168,31 +182,17 @@ function renderSettingsPanel() {
         <span class="duration-value" id="duration-value">${duration}s</span>
       </div>
     </div>
-    <div class="setting-group">
-      <div class="setting-label">ASCII Grid Size</div>
-      <div class="grid-options" id="grid-options">
-        ${Object.keys(GRID_PRESETS).map(key => `
-          <button class="grid-option ${key === gridSize.label ? 'active' : ''}"
-            data-preset="${key}">${key}</button>
-        `).join('')}
-      </div>
-    </div>
   `
+
+  panel.querySelector('#title-input').addEventListener('input', (e) => {
+    setTitle(e.target.value)
+    applyTitle()
+  })
 
   panel.querySelector('#duration-slider').addEventListener('input', (e) => {
     const val = parseInt(e.target.value)
     setDuration(val)
     panel.querySelector('#duration-value').textContent = val + 's'
-  })
-
-  panel.querySelector('#grid-options').addEventListener('click', (e) => {
-    const btn = e.target.closest('.grid-option')
-    if (!btn) return
-    const preset = btn.dataset.preset
-    setGridSize(preset)
-    panel.querySelectorAll('.grid-option').forEach(b => {
-      b.classList.toggle('active', b.dataset.preset === preset)
-    })
   })
 }
 
@@ -201,14 +201,22 @@ function updateMainView() {
   const names = getNames()
   const count = names.length
 
+  // Sync cycle with current roster (handles deleted names)
+  syncWithRoster(names)
+
   if (count === 0) {
     startBtn.disabled = true
     statusText.textContent = 'No names added'
     emptyState.style.display = ''
     clearArtRows()
   } else {
+    const available = getAvailableNames(names)
     startBtn.disabled = isAnimating
-    statusText.textContent = `${count} colleague${count === 1 ? '' : 's'} ready`
+    if (available.length === count) {
+      statusText.textContent = `${count} colleague${count === 1 ? '' : 's'} ready`
+    } else {
+      statusText.textContent = `${available.length} of ${count} remaining this round`
+    }
     emptyState.style.display = 'none'
   }
 }
@@ -239,6 +247,15 @@ startBtn.addEventListener('click', () => {
   const names = getNames()
   if (names.length === 0 || isAnimating) return
 
+  // Check if cycle needs reset
+  if (shouldResetCycle(names)) {
+    resetCycle()
+  }
+
+  // Pick winner from available names only
+  const available = getAvailableNames(names)
+  const winner = available[Math.floor(Math.random() * available.length)]
+
   isAnimating = true
   startBtn.disabled = true
   settingsBtn.disabled = true
@@ -253,17 +270,26 @@ startBtn.addEventListener('click', () => {
     (currentName, isFinal) => {
       renderAsciiFrame(currentName)
     },
-    (winner) => {
+    (pickedWinner) => {
+      markPicked(pickedWinner)
       isAnimating = false
       startBtn.disabled = false
       settingsBtn.disabled = false
-      statusText.textContent = `🎉 ${winner} hosts!`
+
+      const remaining = getAvailableNames(names)
+      if (remaining.length === 0) {
+        statusText.textContent = `🎉 ${pickedWinner} hosts! — Round complete!`
+      } else {
+        statusText.textContent = `🎉 ${pickedWinner} hosts! — ${remaining.length} of ${names.length} remaining`
+      }
       artBox.classList.add('winner')
-    }
+    },
+    winner
   )
 })
 
 // --- Initial render ---
+applyTitle()
 updateMainView()
 
 const initialNames = getNames()

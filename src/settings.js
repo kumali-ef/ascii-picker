@@ -1,9 +1,11 @@
 const DURATION_KEY = 'ascii-picker-duration'
 const GRID_KEY = 'ascii-picker-grid'
+const TITLE_KEY = 'ascii-picker-title'
 
 const DEFAULT_DURATION = 5
 const MIN_DURATION = 2
 const MAX_DURATION = 15
+const DEFAULT_TITLE = 'ASCII PICKER'
 
 export const GRID_PRESETS = {
   small:  { cols: 30, rows: 16, label: 'small' },
@@ -12,7 +14,8 @@ export const GRID_PRESETS = {
 }
 
 let duration = DEFAULT_DURATION
-let gridLabel = 'medium'
+let gridLabel = 'large'
+let title = DEFAULT_TITLE
 
 function loadFromStorage() {
   try {
@@ -23,6 +26,10 @@ function loadFromStorage() {
     const storedGrid = localStorage.getItem(GRID_KEY)
     if (storedGrid && GRID_PRESETS[storedGrid]) {
       gridLabel = storedGrid
+    }
+    const storedTitle = localStorage.getItem(TITLE_KEY)
+    if (storedTitle !== null) {
+      title = storedTitle
     }
   } catch {
     // localStorage unavailable
@@ -60,9 +67,19 @@ export function setGridSize(preset) {
   saveToStorage(GRID_KEY, gridLabel)
 }
 
+export function getTitle() {
+  return title
+}
+
+export function setTitle(val) {
+  title = (val || '').trim() || DEFAULT_TITLE
+  saveToStorage(TITLE_KEY, title)
+}
+
 export function _resetForTest() {
   duration = DEFAULT_DURATION
-  gridLabel = 'medium'
+  gridLabel = 'large'
+  title = DEFAULT_TITLE
 }
 
 loadFromStorage()

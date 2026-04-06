@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   getDuration, setDuration,
   getGridSize, setGridSize,
+  getTitle, setTitle,
   GRID_PRESETS,
   _resetForTest
 } from './settings.js'
@@ -32,8 +33,8 @@ describe('duration', () => {
 })
 
 describe('gridSize', () => {
-  it('returns medium preset by default', () => {
-    expect(getGridSize()).toEqual({ cols: 50, rows: 28, label: 'medium' })
+  it('returns large preset by default', () => {
+    expect(getGridSize()).toEqual({ cols: 70, rows: 40, label: 'large' })
   })
 
   it('sets to small preset', () => {
@@ -48,12 +49,38 @@ describe('gridSize', () => {
 
   it('ignores invalid preset', () => {
     setGridSize('huge')
-    expect(getGridSize()).toEqual({ cols: 50, rows: 28, label: 'medium' })
+    expect(getGridSize()).toEqual({ cols: 70, rows: 40, label: 'large' })
   })
 })
 
 describe('GRID_PRESETS', () => {
   it('exports three presets', () => {
     expect(Object.keys(GRID_PRESETS)).toEqual(['small', 'medium', 'large'])
+  })
+})
+
+describe('title', () => {
+  it('returns default title', () => {
+    expect(getTitle()).toBe('ASCII PICKER')
+  })
+
+  it('sets and gets custom title', () => {
+    setTitle('Daily Standup')
+    expect(getTitle()).toBe('Daily Standup')
+  })
+
+  it('falls back to default when set to empty string', () => {
+    setTitle('')
+    expect(getTitle()).toBe('ASCII PICKER')
+  })
+
+  it('falls back to default when set to whitespace only', () => {
+    setTitle('   ')
+    expect(getTitle()).toBe('ASCII PICKER')
+  })
+
+  it('trims whitespace', () => {
+    setTitle('  My Title  ')
+    expect(getTitle()).toBe('My Title')
   })
 })
