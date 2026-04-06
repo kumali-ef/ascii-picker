@@ -1,7 +1,7 @@
 import './style.css'
 import { initTheme, toggleTheme } from './theme.js'
 import { getNames, addNames, editName, deleteName } from './names.js'
-import { getDuration, setDuration, getGridSize, getTitle, setTitle } from './settings.js'
+import { getDuration, setDuration, getGridSize, getTitle, setTitle, getPreferredChars, setPreferredChars } from './settings.js'
 import { buildPalette, renderNameToAscii, CELL_W } from './ascii-renderer.js'
 import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
@@ -34,7 +34,7 @@ function applyTitle() {
 }
 
 // --- Build palette on load ---
-buildPalette()
+buildPalette(getPreferredChars())
 
 // --- Modal setup ---
 createModal()
@@ -167,12 +167,19 @@ function renderSettingsPanel() {
 
   const duration = getDuration()
   const currentTitle = getTitle()
+  const currentChars = getPreferredChars()
 
   panel.innerHTML = `
     <div class="setting-group">
       <div class="setting-label">Title</div>
       <input type="text" class="title-input" id="title-input"
         value="${currentTitle.replace(/"/g, '&quot;')}" placeholder="ASCII PICKER">
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">ASCII Characters</div>
+      <input type="text" class="title-input" id="preferred-chars-input"
+        value="${currentChars.replace(/"/g, '&quot;')}" placeholder="Leave empty for full charset">
+      <div class="setting-hint">Characters used to compose the ASCII art. Clear to use all characters.</div>
     </div>
     <div class="setting-group">
       <div class="setting-label">Animation Duration</div>
@@ -187,6 +194,11 @@ function renderSettingsPanel() {
   panel.querySelector('#title-input').addEventListener('input', (e) => {
     setTitle(e.target.value)
     applyTitle()
+  })
+
+  panel.querySelector('#preferred-chars-input').addEventListener('input', (e) => {
+    setPreferredChars(e.target.value)
+    buildPalette(getPreferredChars())
   })
 
   panel.querySelector('#duration-slider').addEventListener('input', (e) => {

@@ -1,11 +1,13 @@
 const DURATION_KEY = 'ascii-picker-duration'
 const GRID_KEY = 'ascii-picker-grid'
 const TITLE_KEY = 'ascii-picker-title'
+const PREFERRED_CHARS_KEY = 'ascii-picker-preferred-chars'
 
 const DEFAULT_DURATION = 5
 const MIN_DURATION = 2
 const MAX_DURATION = 15
 const DEFAULT_TITLE = 'ASCII PICKER'
+const DEFAULT_PREFERRED_CHARS = 'EFEKTA'
 
 export const GRID_PRESETS = {
   small:  { cols: 30, rows: 16, label: 'small' },
@@ -16,6 +18,7 @@ export const GRID_PRESETS = {
 let duration = DEFAULT_DURATION
 let gridLabel = 'large'
 let title = DEFAULT_TITLE
+let preferredChars = DEFAULT_PREFERRED_CHARS
 
 function loadFromStorage() {
   try {
@@ -30,6 +33,10 @@ function loadFromStorage() {
     const storedTitle = localStorage.getItem(TITLE_KEY)
     if (storedTitle !== null) {
       title = storedTitle
+    }
+    const storedChars = localStorage.getItem(PREFERRED_CHARS_KEY)
+    if (storedChars !== null) {
+      preferredChars = storedChars
     }
   } catch {
     // localStorage unavailable
@@ -76,10 +83,20 @@ export function setTitle(val) {
   saveToStorage(TITLE_KEY, title)
 }
 
+export function getPreferredChars() {
+  return preferredChars
+}
+
+export function setPreferredChars(val) {
+  preferredChars = (val || '').trim()
+  saveToStorage(PREFERRED_CHARS_KEY, preferredChars)
+}
+
 export function _resetForTest() {
   duration = DEFAULT_DURATION
   gridLabel = 'large'
   title = DEFAULT_TITLE
+  preferredChars = DEFAULT_PREFERRED_CHARS
 }
 
 loadFromStorage()

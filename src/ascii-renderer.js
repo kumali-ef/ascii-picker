@@ -1,9 +1,7 @@
 const FONT_SIZE = 18
 const PROP_FAMILY = 'Georgia, Palatino, "Times New Roman", serif'
 const BASE_CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-const PREFERRED = 'EFEKTA'
-// Repeat preferred chars so they dominate the palette at every brightness level
-const CHARSET = BASE_CHARSET + PREFERRED.repeat(8)
+const DEFAULT_PREFERRED = ''
 const WEIGHTS = [300, 500, 800]
 const STYLES = ['normal', 'italic']
 const CANVAS_MULT = 16
@@ -11,6 +9,7 @@ export const CELL_W = 12
 
 let palette = []
 let paletteReady = false
+let currentPreferred = null
 
 // Small canvas for brightness estimation
 const bCvs = document.createElement('canvas')
@@ -30,14 +29,23 @@ function estimateBrightness(ch, font) {
   return sum / (255 * s * s)
 }
 
-export function buildPalette() {
-  if (paletteReady) return
+export function buildPalette(preferred) {
+  const pref = (preferred !== undefined && preferred !== null) ? preferred : DEFAULT_PREFERRED
+
+  // Skip rebuild if same preferred chars
+  if (paletteReady && currentPreferred === pref) return
+  currentPreferred = pref
+
+  // If preferred chars set, use only those; otherwise use full base charset
+  const charset = pref.length > 0
+    ? [...new Set(pref)].join('')
+    : BASE_CHARSET.slice(1) // exclude space
 
   palette = []
   for (const style of STYLES) {
     for (const weight of WEIGHTS) {
       const font = `${style === 'italic' ? 'italic ' : ''}${weight} ${FONT_SIZE}px ${PROP_FAMILY}`
-      for (const ch of CHARSET) {
+      for (const ch of charset) {
         if (ch === ' ') continue
         const brightness = estimateBrightness(ch, font)
         palette.push({ char: ch, weight, style, brightness })
@@ -68,10 +76,7 @@ function findBest(targetB) {
   const e = Math.min(palette.length, lo + 10)
   for (let i = s; i < e; i++) {
     const p = palette[i]
-    const diff = Math.abs(p.brightness - targetB)
-    // Prefer EFKTA chars — small bonus breaks ties toward them
-    const bonus = PREFERRED.includes(p.char) ? -0.001 : 0
-    const score = diff + bonus
+    const score = Math.abs(p.brightness - targetB)
     if (score < bestScore) {
       bestScore = score
       best = p

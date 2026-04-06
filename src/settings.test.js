@@ -3,6 +3,7 @@ import {
   getDuration, setDuration,
   getGridSize, setGridSize,
   getTitle, setTitle,
+  getPreferredChars, setPreferredChars,
   GRID_PRESETS,
   _resetForTest
 } from './settings.js'
@@ -82,5 +83,26 @@ describe('title', () => {
   it('trims whitespace', () => {
     setTitle('  My Title  ')
     expect(getTitle()).toBe('My Title')
+  })
+})
+
+describe('preferredChars', () => {
+  it('returns default EFEKTA', () => {
+    expect(getPreferredChars()).toBe('EFEKTA')
+  })
+
+  it('sets and gets custom chars', () => {
+    setPreferredChars('XYZ')
+    expect(getPreferredChars()).toBe('XYZ')
+  })
+
+  it('allows empty string to fall back to full charset', () => {
+    setPreferredChars('')
+    expect(getPreferredChars()).toBe('')
+  })
+
+  it('trims whitespace', () => {
+    setPreferredChars('  ABC  ')
+    expect(getPreferredChars()).toBe('ABC')
   })
 })
