@@ -7,6 +7,8 @@ import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
 import { getAvailableNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
 import { startConfetti } from './confetti.js'
+import { initRoom, isRoomMode, getRoomSlug, generateSlug, createRoom } from './room.js'
+import { showToast } from './toast.js'
 
 const artBox = document.getElementById('art-box')
 const emptyState = document.getElementById('empty-state')
@@ -15,6 +17,8 @@ const statusText = document.getElementById('status-text')
 const themeToggle = document.getElementById('theme-toggle')
 const settingsBtn = document.getElementById('settings-btn')
 const headerTitle = document.querySelector('.header-title')
+const shareBtn = document.getElementById('share-btn')
+const roomIndicator = document.getElementById('room-indicator')
 
 let isAnimating = false
 
@@ -46,6 +50,90 @@ settingsBtn.addEventListener('click', () => {
   renderSettingsPanel()
   openModal(updateMainView)
 })
+
+// --- Share button ---
+shareBtn.addEventListener('click', () => {
+  if (isRoomMode()) {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('URL copied to clipboard!')
+    }).catch(() => {
+      showToast('Could not copy URL')
+    })
+  } else {
+    showShareDialog()
+  }
+})
+
+function showShareDialog() {
+  const slug = generateSlug()
+  const backdrop = document.createElement('div')
+  backdrop.className = 'share-dialog-backdrop'
+
+  const dialog = document.createElement('div')
+  dialog.className = 'share-dialog'
+  dialog.innerHTML = `
+    <h3>Create Shared Room</h3>
+    <div class="slug-row">
+      <input type="text" class="slug-input" id="slug-input" value="${slug}"
+        placeholder="room-slug" maxlength="64">
+      <button class="share-create-btn" id="share-create-btn">Create & Copy URL</button>
+    </div>
+    <div class="slug-hint">Lowercase letters, numbers, and hyphens. 2-64 characters.</div>
+  `
+
+  document.body.appendChild(backdrop)
+  document.body.appendChild(dialog)
+
+  const input = dialog.querySelector('#slug-input')
+  const btn = dialog.querySelector('#share-create-btn')
+
+  input.focus()
+  input.select()
+
+  function close() {
+    backdrop.remove()
+    dialog.remove()
+  }
+
+  backdrop.addEventListener('click', close)
+
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') {
+      close()
+      document.removeEventListener('keydown', escHandler)
+    }
+  })
+
+  const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$/
+
+  btn.addEventListener('click', async () => {
+    const finalSlug = input.value.trim().toLowerCase()
+    if (finalSlug.length < 2) {
+      showToast('Slug must be at least 2 characters')
+      return
+    }
+    if (!SLUG_RE.test(finalSlug)) {
+      showToast('Invalid slug format')
+      return
+    }
+
+    btn.disabled = true
+    btn.textContent = 'Creating...'
+
+    try {
+      await createRoom(finalSlug)
+      const url = `${window.location.origin}/${finalSlug}`
+      await navigator.clipboard.writeText(url).catch(() => {})
+      showToast('Room created! URL copied.')
+      close()
+      window.location.href = url
+    } catch (err) {
+      btn.disabled = false
+      btn.textContent = 'Create & Copy URL'
+      showToast('Failed to create room')
+    }
+  })
+}
 
 // --- Names panel rendering ---
 function renderNamesPanel() {
@@ -304,14 +392,26 @@ startBtn.addEventListener('click', () => {
 })
 
 // --- Initial render ---
-applyTitle()
-updateMainView()
+async function init() {
+  await initRoom()
 
-const initialNames = getNames()
-if (initialNames.length > 0) {
-  const preview = initialNames[Math.floor(Math.random() * initialNames.length)]
-  renderAsciiFrame(preview)
+  applyTitle()
+  buildPalette(getPreferredChars())
+  updateMainView()
+
+  if (isRoomMode()) {
+    roomIndicator.textContent = `📡 ${getRoomSlug()}`
+    roomIndicator.classList.add('active')
+  }
+
+  const initialNames = getNames()
+  if (initialNames.length > 0) {
+    const preview = initialNames[Math.floor(Math.random() * initialNames.length)]
+    renderAsciiFrame(preview)
+  }
 }
+
+init()
 
 // --- Helpers ---
 function escapeHtml(str) {
