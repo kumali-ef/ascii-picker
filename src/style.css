@@ -103,11 +103,17 @@ body {
 }
 
 .art-row {
-  white-space: pre;
+  white-space: nowrap;
   font-family: var(--font-ascii);
-  font-size: 13px;
-  line-height: 15px;
+  font-size: 14px;
+  line-height: 1.1;
+  height: 1.1em;
   color: var(--text);
+}
+
+.art-row span {
+  display: inline-block;
+  text-align: center;
 }
 
 /* ASCII character weight/style classes */

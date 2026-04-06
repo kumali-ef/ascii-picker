@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Sample</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #000; color: #0f0; }
+    body { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+    .art-box {
+      border: 1px solid rgba(0,255,0,0.15);
+      border-radius: 12px;
+      padding: 20px;
+      background: #050505;
+      overflow: hidden;
+    }
+    .art-row {
+      white-space: nowrap;
+      font-family: Georgia, Palatino, "Times New Roman", serif;
+      font-size: 14px;
+      line-height: 1.1;
+      height: 1.1em;
+      color: #0f0;
+    }
+    .art-row span {
+      display: inline-block;
+      text-align: center;
+    }
+    .w3 { font-weight: 300; } .w5 { font-weight: 500; } .w8 { font-weight: 800; }
+    .it { font-style: italic; }
+    .a1 { opacity: 0.10; } .a2 { opacity: 0.20; } .a3 { opacity: 0.30; }
+    .a4 { opacity: 0.40; } .a5 { opacity: 0.50; } .a6 { opacity: 0.60; }
+    .a7 { opacity: 0.70; } .a8 { opacity: 0.80; } .a9 { opacity: 0.90; }
+    .a10 { opacity: 1.0; }
+    .info { font: 400 12px/1 "Helvetica Neue", sans-serif; color: rgba(0,255,0,0.3); }
+  </style>
+</head>
+<body>
+  <div class="art-box" id="art-box"></div>
+  <div class="info" id="info">Building palette...</div>
+
+  <script type="module">
+    import { prepareWithSegments } from '@chenglou/pretext'
+
+    const COLS = 80, ROWS = 24
+    const CELL_W = 9
+    const FONT_SIZE = 14
+    const PROP_FAMILY = 'Georgia, Palatino, "Times New Roman", serif'
+    const CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    const WEIGHTS = [300, 500, 800]
+    const STYLES = ['normal', 'italic']
+    const CANVAS_MULT = 16
+
+    const bCvs = document.createElement('canvas')
+    bCvs.width = bCvs.height = 28
+    const bCtx = bCvs.getContext('2d', { willReadFrequently: true })
+
+    function estimateBrightness(ch, font) {
+      const s = 28
+      bCtx.clearRect(0, 0, s, s)
+      bCtx.font = font
+      bCtx.fillStyle = '#fff'
+      bCtx.textBaseline = 'middle'
+      bCtx.fillText(ch, 1, s / 2)
+      const d = bCtx.getImageData(0, 0, s, s).data
+      let sum = 0
+      for (let i = 3; i < d.length; i += 4) sum += d[i]
+      return sum / (255 * s * s)
+    }
+
+    // Build palette — brightness only (width no longer matters for grid)
+    const palette = []
+    for (const style of STYLES) {
+      for (const weight of WEIGHTS) {
+        const font = `${style === 'italic' ? 'italic ' : ''}${weight} ${FONT_SIZE}px ${PROP_FAMILY}`
+        for (const ch of CHARSET) {
+          if (ch === ' ') continue
+          const brightness = estimateBrightness(ch, font)
+          palette.push({ char: ch, weight, style, brightness })
+        }
+      }
+    }
+    const maxB = Math.max(...palette.map(p => p.brightness))
+    if (maxB > 0) for (const p of palette) p.brightness /= maxB
+    palette.sort((a, b) => a.brightness - b.brightness)
+
+    function findBest(targetB) {
+      let lo = 0, hi = palette.length - 1
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1
+        if (palette[mid].brightness < targetB) lo = mid + 1
+        else hi = mid
+      }
+      let bestScore = Infinity, best = palette[lo]
+      const s = Math.max(0, lo - 10), e = Math.min(palette.length, lo + 10)
+      for (let i = s; i < e; i++) {
+        const p = palette[i]
+        const score = Math.abs(p.brightness - targetB)
+        if (score < bestScore) { bestScore = score; best = p }
+      }
+      return best
+    }
+
+    function wCls(w, s) {
+      const wc = w === 300 ? 'w3' : w === 500 ? 'w5' : 'w8'
+      return s === 'italic' ? wc + ' it' : wc
+    }
+
+    function esc(c) {
+      if (c === '<') return '&lt;'
+      if (c === '>') return '&gt;'
+      if (c === '&') return '&amp;'
+      return c
+    }
+
+    // Render "ASCII" to canvas
+    const name = 'ASCII'
+    const cvsW = COLS * CANVAS_MULT
+    const cvsH = ROWS * CANVAS_MULT
+    const cvs = document.createElement('canvas')
+    cvs.width = cvsW
+    cvs.height = cvsH
+    const ctx = cvs.getContext('2d', { willReadFrequently: true })
+
+    ctx.fillStyle = '#000'
+    ctx.fillRect(0, 0, cvsW, cvsH)
+
+    let fontSize = Math.floor(cvsH * 0.75)
+    ctx.font = `800 ${fontSize}px ${PROP_FAMILY}`
+    let textW = ctx.measureText(name).width
+    while (textW > cvsW * 0.85 && fontSize > 10) {
+      fontSize -= 2
+      ctx.font = `800 ${fontSize}px ${PROP_FAMILY}`
+      textW = ctx.measureText(name).width
+    }
+
+    ctx.fillStyle = '#fff'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'center'
+    ctx.fillText(name, cvsW / 2, cvsH / 2)
+
+    const imgData = ctx.getImageData(0, 0, cvsW, cvsH).data
+
+    // Area-averaged sampling
+    function sampleArea(c, r) {
+      const x0 = Math.floor(c / COLS * cvsW)
+      const y0 = Math.floor(r / ROWS * cvsH)
+      const x1 = Math.floor((c + 1) / COLS * cvsW)
+      const y1 = Math.floor((r + 1) / ROWS * cvsH)
+      let sum = 0, count = 0
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const i = (y * cvsW + x) * 4
+          sum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3
+          count++
+        }
+      }
+      return count > 0 ? Math.min(1, sum / (count * 255)) : 0
+    }
+
+    // Render ASCII art with fixed-width cells
+    const artBox = document.getElementById('art-box')
+
+    for (let r = 0; r < ROWS; r++) {
+      const div = document.createElement('div')
+      div.className = 'art-row'
+      let html = ''
+      for (let c = 0; c < COLS; c++) {
+        const b = sampleArea(c, r)
+        if (b < 0.02) {
+          html += `<span style="width:${CELL_W}px"> </span>`
+        } else {
+          const m = findBest(b)
+          const ai = Math.max(1, Math.min(10, Math.round(b * 10)))
+          html += `<span class="${wCls(m.weight, m.style)} a${ai}" style="width:${CELL_W}px">${esc(m.char)}</span>`
+        }
+      }
+      div.innerHTML = html
+      artBox.appendChild(div)
+    }
+
+    document.getElementById('info').textContent =
+      `${COLS}×${ROWS} grid | ${palette.length} chars | canvas ${cvsW}×${cvsH} | font ${fontSize}px | cell ${CELL_W}px`
+  </script>
+</body>
+</html>

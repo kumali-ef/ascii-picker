@@ -2,7 +2,7 @@ import './style.css'
 import { initTheme, toggleTheme } from './theme.js'
 import { getNames, addNames, editName, deleteName } from './names.js'
 import { getDuration, setDuration, getGridSize, setGridSize, GRID_PRESETS } from './settings.js'
-import { buildPalette, renderNameToAscii } from './ascii-renderer.js'
+import { buildPalette, renderNameToAscii, CELL_W } from './ascii-renderer.js'
 import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
 
@@ -226,11 +226,9 @@ function renderAsciiFrame(name) {
   clearArtRows()
   emptyState.style.display = 'none'
 
-  result.rowsHtml.forEach((html, i) => {
+  result.rowsHtml.forEach((html) => {
     const div = document.createElement('div')
     div.className = 'art-row'
-    div.style.height = div.style.lineHeight = '15px'
-    div.style.paddingLeft = result.paddings[i] + 'px'
     div.innerHTML = html
     artBox.appendChild(div)
   })

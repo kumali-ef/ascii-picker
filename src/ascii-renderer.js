@@ -1,11 +1,10 @@
-import { prepareWithSegments } from '@chenglou/pretext'
-
-const FONT_SIZE = 13
-const LINE_HEIGHT = 15
+const FONT_SIZE = 14
 const PROP_FAMILY = 'Georgia, Palatino, "Times New Roman", serif'
 const CHARSET = ' .,:;!+-=*#@%&abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 const WEIGHTS = [300, 500, 800]
 const STYLES = ['normal', 'italic']
+const CANVAS_MULT = 16
+export const CELL_W = 9
 
 let palette = []
 let paletteReady = false
@@ -28,11 +27,6 @@ function estimateBrightness(ch, font) {
   return sum / (255 * s * s)
 }
 
-function measureWidth(ch, font) {
-  const p = prepareWithSegments(ch, font)
-  return p.widths.length > 0 ? p.widths[0] : 0
-}
-
 export function buildPalette() {
   if (paletteReady) return
 
@@ -42,10 +36,8 @@ export function buildPalette() {
       const font = `${style === 'italic' ? 'italic ' : ''}${weight} ${FONT_SIZE}px ${PROP_FAMILY}`
       for (const ch of CHARSET) {
         if (ch === ' ') continue
-        const width = measureWidth(ch, font)
-        if (width <= 0) continue
         const brightness = estimateBrightness(ch, font)
-        palette.push({ char: ch, weight, style, font, width, brightness })
+        palette.push({ char: ch, weight, style, brightness })
       }
     }
   }
@@ -60,7 +52,7 @@ export function buildPalette() {
   paletteReady = true
 }
 
-function findBest(targetB, targetCellW) {
+function findBest(targetB) {
   let lo = 0, hi = palette.length - 1
   while (lo < hi) {
     const mid = (lo + hi) >> 1
@@ -69,13 +61,11 @@ function findBest(targetB, targetCellW) {
   }
 
   let bestScore = Infinity, best = palette[lo]
-  const s = Math.max(0, lo - 15)
-  const e = Math.min(palette.length, lo + 15)
+  const s = Math.max(0, lo - 10)
+  const e = Math.min(palette.length, lo + 10)
   for (let i = s; i < e; i++) {
     const p = palette[i]
-    const bErr = Math.abs(p.brightness - targetB) * 2.5
-    const wErr = Math.abs(p.width - targetCellW) / targetCellW
-    const score = bErr + wErr
+    const score = Math.abs(p.brightness - targetB)
     if (score < bestScore) {
       bestScore = score
       best = p
@@ -104,24 +94,19 @@ const nameCtx = nameCvs.getContext('2d', { willReadFrequently: true })
 export function renderNameToAscii(name, cols, rows) {
   if (!paletteReady || palette.length === 0) return null
 
-  const targetRowW = cols * (FONT_SIZE * 0.55)
-  const targetCellW = targetRowW / cols
-  const spaceW = FONT_SIZE * 0.27
-
-  const cvsW = cols * 4
-  const cvsH = rows * 4
+  const cvsW = cols * CANVAS_MULT
+  const cvsH = rows * CANVAS_MULT
   nameCvs.width = cvsW
   nameCvs.height = cvsH
 
-  nameCtx.clearRect(0, 0, cvsW, cvsH)
   nameCtx.fillStyle = '#000'
   nameCtx.fillRect(0, 0, cvsW, cvsH)
 
   // Auto-scale font size to fit name within canvas
-  let fontSize = Math.floor(cvsH * 0.7)
+  let fontSize = Math.floor(cvsH * 0.75)
   nameCtx.font = `800 ${fontSize}px ${PROP_FAMILY}`
   let textW = nameCtx.measureText(name).width
-  while (textW > cvsW * 0.9 && fontSize > 10) {
+  while (textW > cvsW * 0.85 && fontSize > 10) {
     fontSize -= 2
     nameCtx.font = `800 ${fontSize}px ${PROP_FAMILY}`
     textW = nameCtx.measureText(name).width
@@ -134,37 +119,39 @@ export function renderNameToAscii(name, cols, rows) {
 
   const imgData = nameCtx.getImageData(0, 0, cvsW, cvsH).data
 
-  function sample(c, r) {
-    const cx = Math.min(cvsW - 1, (c / cols * cvsW) | 0)
-    const cy = Math.min(cvsH - 1, (r / rows * cvsH) | 0)
-    const i = (cy * cvsW + cx) * 4
-    return Math.min(1, (imgData[i] + imgData[i + 1] + imgData[i + 2]) / (3 * 255))
+  // Area-averaged sampling for clean brightness values
+  function sampleArea(c, r) {
+    const x0 = Math.floor(c / cols * cvsW)
+    const y0 = Math.floor(r / rows * cvsH)
+    const x1 = Math.floor((c + 1) / cols * cvsW)
+    const y1 = Math.floor((r + 1) / rows * cvsH)
+    let sum = 0, count = 0
+    for (let y = y0; y < y1; y++) {
+      for (let x = x0; x < x1; x++) {
+        const i = (y * cvsW + x) * 4
+        sum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3
+        count++
+      }
+    }
+    return count > 0 ? Math.min(1, sum / (count * 255)) : 0
   }
 
   const rowsHtml = []
-  const rowWidths = []
 
   for (let r = 0; r < rows; r++) {
     let html = ''
-    let tw = 0
     for (let c = 0; c < cols; c++) {
-      const b = sample(c, r)
-      if (b < 0.03) {
-        html += ' '
-        tw += spaceW
+      const b = sampleArea(c, r)
+      if (b < 0.02) {
+        html += `<span style="width:${CELL_W}px"> </span>`
       } else {
-        const m = findBest(b, targetCellW)
+        const m = findBest(b)
         const ai = Math.max(1, Math.min(10, Math.round(b * 10)))
-        html += `<span class="${weightClass(m.weight, m.style)} a${ai}">${escapeHtml(m.char)}</span>`
-        tw += m.width
+        html += `<span class="${weightClass(m.weight, m.style)} a${ai}" style="width:${CELL_W}px">${escapeHtml(m.char)}</span>`
       }
     }
     rowsHtml.push(html)
-    rowWidths.push(tw)
   }
 
-  const maxW = Math.max(...rowWidths)
-  const paddings = rowWidths.map(w => (maxW - w) / 2)
-
-  return { rowsHtml, paddings }
+  return { rowsHtml }
 }
