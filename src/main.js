@@ -6,6 +6,7 @@ import { buildPalette, renderNameToAscii, CELL_W } from './ascii-renderer.js'
 import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
 import { getAvailableNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
+import { startConfetti } from './confetti.js'
 
 const artBox = document.getElementById('art-box')
 const emptyState = document.getElementById('empty-state')
@@ -287,6 +288,8 @@ startBtn.addEventListener('click', () => {
       isAnimating = false
       startBtn.disabled = false
       settingsBtn.disabled = false
+
+      startConfetti(duration)
 
       const remaining = getAvailableNames(names)
       if (remaining.length === 0) {
