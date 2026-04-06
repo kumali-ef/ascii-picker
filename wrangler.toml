@@ -1,0 +1,7 @@
+name = "ascii-picker"
+pages_build_output_dir = "./dist"
+compatibility_date = "2025-04-01"
+
+[[kv_namespaces]]
+binding = "ROOMS"
+id = "ca392e9fce2a42d4a99a6c4209884f35"
