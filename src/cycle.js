@@ -1,6 +1,11 @@
 const STORAGE_KEY = 'ascii-picker-picked'
 
 let pickedNames = []
+let changeListeners = []
+
+function notifyChange() {
+  changeListeners.forEach(cb => cb())
+}
 
 function loadFromStorage() {
   try {
@@ -32,6 +37,7 @@ export function markPicked(name) {
   if (!pickedNames.includes(name)) {
     pickedNames.push(name)
     saveToStorage()
+    notifyChange()
   }
 }
 
@@ -43,6 +49,7 @@ export function shouldResetCycle(allNames) {
 export function resetCycle() {
   pickedNames = []
   saveToStorage()
+  notifyChange()
 }
 
 // Remove names from picked list that no longer exist in the roster
@@ -52,11 +59,25 @@ export function syncWithRoster(allNames) {
   pickedNames = pickedNames.filter(n => roster.has(n))
   if (pickedNames.length !== before) {
     saveToStorage()
+    notifyChange()
+  }
+}
+
+export function setPicked(arr) {
+  pickedNames = [...arr]
+  saveToStorage()
+}
+
+export function onCycleChange(cb) {
+  changeListeners.push(cb)
+  return () => {
+    changeListeners = changeListeners.filter(fn => fn !== cb)
   }
 }
 
 export function _resetForTest() {
   pickedNames = []
+  changeListeners = []
 }
 
 loadFromStorage()

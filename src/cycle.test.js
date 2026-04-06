@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   getPickedNames, getAvailableNames, markPicked,
-  shouldResetCycle, resetCycle, syncWithRoster, _resetForTest
+  shouldResetCycle, resetCycle, syncWithRoster, setPicked, onCycleChange, _resetForTest
 } from './cycle.js'
 
 beforeEach(() => {
@@ -78,5 +78,54 @@ describe('syncWithRoster', () => {
     markPicked('Alice')
     syncWithRoster(['Alice', 'Bob'])
     expect(getPickedNames()).toEqual(['Alice'])
+  })
+})
+
+describe('setPicked', () => {
+  it('replaces picked list', () => {
+    markPicked('Alice')
+    setPicked(['X', 'Y'])
+    expect(getPickedNames()).toEqual(['X', 'Y'])
+  })
+})
+
+describe('onCycleChange', () => {
+  it('fires on markPicked', () => {
+    const cb = vi.fn()
+    onCycleChange(cb)
+    markPicked('Alice')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('fires on resetCycle', () => {
+    markPicked('Alice')
+    const cb = vi.fn()
+    onCycleChange(cb)
+    resetCycle()
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('fires on syncWithRoster when picked list changes', () => {
+    markPicked('Alice')
+    markPicked('Bob')
+    const cb = vi.fn()
+    onCycleChange(cb)
+    syncWithRoster(['Alice'])
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('does NOT fire on setPicked', () => {
+    const cb = vi.fn()
+    onCycleChange(cb)
+    setPicked(['Alice', 'Bob'])
+    expect(cb).not.toHaveBeenCalled()
+  })
+
+  it('unsub stops callbacks', () => {
+    const cb = vi.fn()
+    const unsub = onCycleChange(cb)
+    unsub()
+    markPicked('Alice')
+    expect(cb).not.toHaveBeenCalled()
   })
 })

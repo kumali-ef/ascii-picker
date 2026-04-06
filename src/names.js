@@ -1,6 +1,11 @@
 const STORAGE_KEY = 'ascii-picker-names'
 
 let names = []
+let changeListeners = []
+
+function notifyChange() {
+  changeListeners.forEach(cb => cb())
+}
 
 function loadFromStorage() {
   try {
@@ -40,6 +45,7 @@ export function addNames(input) {
 
   names.push(...added)
   saveToStorage()
+  if (added.length > 0) notifyChange()
   return added
 }
 
@@ -51,6 +57,7 @@ export function editName(index, newName) {
 
   names[index] = trimmed
   saveToStorage()
+  notifyChange()
   return true
 }
 
@@ -58,11 +65,25 @@ export function deleteName(index) {
   if (index < 0 || index >= names.length) return false
   names.splice(index, 1)
   saveToStorage()
+  notifyChange()
   return true
+}
+
+export function setNames(arr) {
+  names = [...arr]
+  saveToStorage()
+}
+
+export function onNamesChange(cb) {
+  changeListeners.push(cb)
+  return () => {
+    changeListeners = changeListeners.filter(fn => fn !== cb)
+  }
 }
 
 export function _resetForTest() {
   names = []
+  changeListeners = []
 }
 
 // Load on module init (no-op in test environment without localStorage)

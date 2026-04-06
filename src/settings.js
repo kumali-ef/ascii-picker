@@ -19,6 +19,11 @@ let duration = DEFAULT_DURATION
 let gridLabel = 'large'
 let title = DEFAULT_TITLE
 let preferredChars = DEFAULT_PREFERRED_CHARS
+let changeListeners = []
+
+function notifyChange() {
+  changeListeners.forEach(cb => cb())
+}
 
 function loadFromStorage() {
   try {
@@ -62,6 +67,7 @@ export function getDuration() {
 export function setDuration(val) {
   duration = clampDuration(val)
   saveToStorage(DURATION_KEY, duration)
+  notifyChange()
 }
 
 export function getGridSize() {
@@ -81,6 +87,7 @@ export function getTitle() {
 export function setTitle(val) {
   title = (val || '').trim() || DEFAULT_TITLE
   saveToStorage(TITLE_KEY, title)
+  notifyChange()
 }
 
 export function getPreferredChars() {
@@ -90,6 +97,29 @@ export function getPreferredChars() {
 export function setPreferredChars(val) {
   preferredChars = (val || '').trim()
   saveToStorage(PREFERRED_CHARS_KEY, preferredChars)
+  notifyChange()
+}
+
+export function hydrateSettings(data) {
+  if (data.title !== undefined) {
+    title = data.title
+    saveToStorage(TITLE_KEY, title)
+  }
+  if (data.duration !== undefined) {
+    duration = clampDuration(data.duration)
+    saveToStorage(DURATION_KEY, duration)
+  }
+  if (data.preferredChars !== undefined) {
+    preferredChars = data.preferredChars
+    saveToStorage(PREFERRED_CHARS_KEY, preferredChars)
+  }
+}
+
+export function onSettingsChange(cb) {
+  changeListeners.push(cb)
+  return () => {
+    changeListeners = changeListeners.filter(fn => fn !== cb)
+  }
 }
 
 export function _resetForTest() {
@@ -97,6 +127,7 @@ export function _resetForTest() {
   gridLabel = 'large'
   title = DEFAULT_TITLE
   preferredChars = DEFAULT_PREFERRED_CHARS
+  changeListeners = []
 }
 
 loadFromStorage()

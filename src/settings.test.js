@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   getDuration, setDuration,
   getGridSize, setGridSize,
   getTitle, setTitle,
   getPreferredChars, setPreferredChars,
   GRID_PRESETS,
+  hydrateSettings, onSettingsChange,
   _resetForTest
 } from './settings.js'
 
@@ -104,5 +105,59 @@ describe('preferredChars', () => {
   it('trims whitespace', () => {
     setPreferredChars('  ABC  ')
     expect(getPreferredChars()).toBe('ABC')
+  })
+})
+
+describe('hydrateSettings', () => {
+  it('sets all shared fields at once', () => {
+    hydrateSettings({ title: 'Room Title', duration: 8, preferredChars: 'XYZ' })
+    expect(getTitle()).toBe('Room Title')
+    expect(getDuration()).toBe(8)
+    expect(getPreferredChars()).toBe('XYZ')
+  })
+
+  it('handles partial data', () => {
+    hydrateSettings({ title: 'Only Title' })
+    expect(getTitle()).toBe('Only Title')
+    expect(getDuration()).toBe(5)
+    expect(getPreferredChars()).toBe('EFEKTA')
+  })
+})
+
+describe('onSettingsChange', () => {
+  it('fires on setTitle', () => {
+    const cb = vi.fn()
+    onSettingsChange(cb)
+    setTitle('New Title')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('fires on setDuration', () => {
+    const cb = vi.fn()
+    onSettingsChange(cb)
+    setDuration(10)
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('fires on setPreferredChars', () => {
+    const cb = vi.fn()
+    onSettingsChange(cb)
+    setPreferredChars('ABC')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('does NOT fire on hydrateSettings', () => {
+    const cb = vi.fn()
+    onSettingsChange(cb)
+    hydrateSettings({ title: 'Room', duration: 7, preferredChars: 'QQ' })
+    expect(cb).not.toHaveBeenCalled()
+  })
+
+  it('unsub stops callbacks', () => {
+    const cb = vi.fn()
+    const unsub = onSettingsChange(cb)
+    unsub()
+    setTitle('Ignored')
+    expect(cb).not.toHaveBeenCalled()
   })
 })

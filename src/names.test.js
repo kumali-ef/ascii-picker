@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getNames, addNames, editName, deleteName, _resetForTest } from './names.js'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { getNames, addNames, editName, deleteName, setNames, onNamesChange, _resetForTest } from './names.js'
 
 beforeEach(() => {
   _resetForTest()
@@ -92,5 +92,67 @@ describe('deleteName', () => {
     addNames('Alice')
     deleteName(5)
     expect(getNames()).toEqual(['Alice'])
+  })
+})
+
+describe('setNames', () => {
+  it('replaces entire list', () => {
+    addNames('Alice\nBob')
+    setNames(['X', 'Y', 'Z'])
+    expect(getNames()).toEqual(['X', 'Y', 'Z'])
+  })
+
+  it('empties list with empty array', () => {
+    addNames('Alice\nBob')
+    setNames([])
+    expect(getNames()).toEqual([])
+  })
+})
+
+describe('onNamesChange', () => {
+  it('fires on addNames', () => {
+    const cb = vi.fn()
+    onNamesChange(cb)
+    addNames('Alice')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not fire on addNames when no new names added', () => {
+    addNames('Alice')
+    const cb = vi.fn()
+    onNamesChange(cb)
+    addNames('Alice')
+    expect(cb).not.toHaveBeenCalled()
+  })
+
+  it('fires on editName', () => {
+    addNames('Alice')
+    const cb = vi.fn()
+    onNamesChange(cb)
+    editName(0, 'Bob')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('fires on deleteName', () => {
+    addNames('Alice')
+    const cb = vi.fn()
+    onNamesChange(cb)
+    deleteName(0)
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('does NOT fire on setNames', () => {
+    const cb = vi.fn()
+    onNamesChange(cb)
+    setNames(['Alice', 'Bob'])
+    expect(cb).not.toHaveBeenCalled()
+  })
+
+  it('unsub stops callbacks', () => {
+    const cb = vi.fn()
+    const unsub = onNamesChange(cb)
+    unsub()
+    addNames('Alice')
+    expect(cb).not.toHaveBeenCalled()
   })
 })
