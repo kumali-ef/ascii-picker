@@ -5,7 +5,7 @@ import { getDuration, setDuration, getGridSize, getTitle, setTitle, getPreferred
 import { buildPalette, renderNameToAscii, CELL_W } from './ascii-renderer.js'
 import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
-import { getAvailableNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
+import { getAvailableNames, getPickedNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
 import { startConfetti } from './confetti.js'
 import { initRoom, isRoomMode, getRoomSlug, generateSlug, createRoom } from './room.js'
 import { showToast } from './toast.js'
@@ -406,8 +406,15 @@ async function init() {
 
   const initialNames = getNames()
   if (initialNames.length > 0) {
-    const preview = initialNames[Math.floor(Math.random() * initialNames.length)]
-    renderAsciiFrame(preview)
+    const picked = getPickedNames()
+    const lastPicked = picked.length > 0 ? picked[picked.length - 1] : null
+    if (lastPicked && initialNames.includes(lastPicked)) {
+      renderAsciiFrame(lastPicked)
+      statusText.textContent = `🎉 ${lastPicked} hosts!`
+    } else {
+      const preview = initialNames[Math.floor(Math.random() * initialNames.length)]
+      renderAsciiFrame(preview)
+    }
   }
 }
 
