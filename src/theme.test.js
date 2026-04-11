@@ -6,8 +6,8 @@ beforeEach(() => {
 })
 
 describe('getTheme', () => {
-  it('returns "system" by default', () => {
-    expect(getTheme()).toBe('system')
+  it('returns "dark" by default', () => {
+    expect(getTheme()).toBe('dark')
   })
 })
 
@@ -30,7 +30,7 @@ describe('setTheme', () => {
 
   it('ignores invalid values', () => {
     setTheme('neon')
-    expect(getTheme()).toBe('system')
+    expect(getTheme()).toBe('dark')
   })
 })
 

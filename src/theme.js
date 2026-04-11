@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'ascii-picker-theme'
 const VALID_THEMES = ['system', 'light', 'dark']
 
-let preference = 'system'
+let preference = 'dark'
 
 function loadFromStorage() {
   try {
@@ -57,7 +57,7 @@ export function toggleTheme() {
 }
 
 export function _resetForTest() {
-  preference = 'system'
+  preference = 'dark'
 }
 
 loadFromStorage()
