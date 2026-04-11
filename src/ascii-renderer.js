@@ -5,7 +5,7 @@ const DEFAULT_PREFERRED = ''
 const WEIGHTS = [300, 500, 800]
 const STYLES = ['normal', 'italic']
 const CANVAS_MULT = 16
-export const CELL_W = 12
+export const CELL_W = 20
 
 let palette = []
 let paletteReady = false
