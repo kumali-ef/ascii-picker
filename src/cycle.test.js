@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   getPickedNames, getAvailableNames, markPicked,
-  shouldResetCycle, resetCycle, syncWithRoster, setPicked, onCycleChange, _resetForTest
+  shouldResetCycle, resetCycle, syncWithRoster, setPicked, onCycleChange, setKeyPrefix, _resetForTest
 } from './cycle.js'
 
 beforeEach(() => {
@@ -127,5 +127,44 @@ describe('onCycleChange', () => {
     unsub()
     markPicked('Alice')
     expect(cb).not.toHaveBeenCalled()
+  })
+})
+
+describe('setKeyPrefix', () => {
+  const store = {}
+  beforeEach(() => {
+    Object.keys(store).forEach(k => delete store[k])
+    globalThis.localStorage = {
+      getItem: (k) => store[k] ?? null,
+      setItem: (k, v) => { store[k] = String(v) },
+      removeItem: (k) => { delete store[k] },
+    }
+    _resetForTest()
+  })
+
+  afterEach(() => {
+    delete globalThis.localStorage
+    _resetForTest()
+  })
+
+  it('isolates picked storage by prefix', () => {
+    markPicked('Alice')
+    expect(getPickedNames()).toEqual(['Alice'])
+
+    setKeyPrefix('room1-')
+    expect(getPickedNames()).toEqual([])
+
+    markPicked('Bob')
+    expect(getPickedNames()).toEqual(['Bob'])
+
+    setKeyPrefix('')
+    expect(getPickedNames()).toEqual(['Alice'])
+  })
+
+  it('resets for test clears prefix too', () => {
+    setKeyPrefix('room1-')
+    markPicked('Alice')
+    _resetForTest()
+    expect(getPickedNames()).toEqual([])
   })
 })
