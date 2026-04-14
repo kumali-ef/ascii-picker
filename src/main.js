@@ -7,7 +7,7 @@ import { startAnimation } from './animation.js'
 import { createModal, openModal, closeModal, getNamesPanel, getSettingsPanel } from './modal.js'
 import { getAvailableNames, getPickedNames, markPicked, shouldResetCycle, resetCycle, syncWithRoster } from './cycle.js'
 import { startConfetti } from './confetti.js'
-import { initRoom, isRoomMode, getRoomSlug, generateSlug, createRoom } from './room.js'
+import { initRoom, isRoomMode, getRoomSlug, generateSlug, createRoom, syncBeforeStart } from './room.js'
 import { showToast } from './toast.js'
 
 const artBox = document.getElementById('art-box')
@@ -21,6 +21,14 @@ const shareBtn = document.getElementById('share-btn')
 const roomIndicator = document.getElementById('room-indicator')
 
 let isAnimating = false
+
+const START_LABEL = '▶ START'
+const SYNC_START_LABEL = '▶ SYNC & START'
+const SYNCING_LABEL = '<span class="sync-icon">⟳</span> SYNCING...'
+
+function setStartBtnLabel(html) {
+  startBtn.innerHTML = html
+}
 
 // --- Theme ---
 const applyTheme = initTheme()
@@ -344,17 +352,37 @@ function renderAsciiFrame(name) {
 }
 
 // --- Start animation ---
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', async () => {
   const names = getNames()
   if (names.length === 0 || isAnimating) return
 
-  // Check if cycle needs reset
-  if (shouldResetCycle(names)) {
+  if (isRoomMode()) {
+    startBtn.disabled = true
+    setStartBtnLabel(SYNCING_LABEL)
+
+    const synced = await syncBeforeStart()
+    if (synced) {
+      showToast('Synced!')
+    } else {
+      showToast('Offline — using local data')
+    }
+
+    updateMainView()
+
+    if (synced) {
+      await new Promise(r => setTimeout(r, 1000))
+    }
+  }
+
+  // Re-read names after potential sync
+  const currentNames = getNames()
+  if (currentNames.length === 0) return
+
+  if (shouldResetCycle(currentNames)) {
     resetCycle()
   }
 
-  // Pick winner from available names only
-  const available = getAvailableNames(names)
+  const available = getAvailableNames(currentNames)
   const winner = available[Math.floor(Math.random() * available.length)]
 
   isAnimating = true
@@ -366,7 +394,7 @@ startBtn.addEventListener('click', () => {
   const duration = getDuration()
 
   startAnimation(
-    names,
+    currentNames,
     duration,
     (currentName, isFinal) => {
       renderAsciiFrame(currentName)
@@ -376,14 +404,15 @@ startBtn.addEventListener('click', () => {
       isAnimating = false
       startBtn.disabled = false
       settingsBtn.disabled = false
+      setStartBtnLabel(isRoomMode() ? SYNC_START_LABEL : START_LABEL)
 
       startConfetti(duration)
 
-      const remaining = getAvailableNames(names)
+      const remaining = getAvailableNames(currentNames)
       if (remaining.length === 0) {
         statusText.textContent = `🎉 ${pickedWinner} hosts! — Round complete!`
       } else {
-        statusText.textContent = `🎉 ${pickedWinner} hosts! — ${remaining.length} of ${names.length} remaining`
+        statusText.textContent = `🎉 ${pickedWinner} hosts! — ${remaining.length} of ${currentNames.length} remaining`
       }
       artBox.classList.add('winner')
     },
@@ -402,6 +431,7 @@ async function init() {
   if (isRoomMode()) {
     roomIndicator.textContent = `📡 ${getRoomSlug()}`
     roomIndicator.classList.add('active')
+    setStartBtnLabel(SYNC_START_LABEL)
   }
 
   const initialNames = getNames()
