@@ -376,7 +376,10 @@ startBtn.addEventListener('click', async () => {
 
   // Re-read names after potential sync
   const currentNames = getNames()
-  if (currentNames.length === 0) return
+  if (currentNames.length === 0) {
+    setStartBtnLabel(isRoomMode() ? SYNC_START_LABEL : START_LABEL)
+    return
+  }
 
   if (shouldResetCycle(currentNames)) {
     resetCycle()
