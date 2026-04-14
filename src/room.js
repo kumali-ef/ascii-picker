@@ -1,8 +1,8 @@
-import { getNames, setNames, onNamesChange } from './names.js'
-import { getPickedNames, setPicked, onCycleChange } from './cycle.js'
+import { getNames, setNames, onNamesChange, setKeyPrefix as setNamesKeyPrefix } from './names.js'
+import { getPickedNames, setPicked, onCycleChange, setKeyPrefix as setCycleKeyPrefix } from './cycle.js'
 import {
   getTitle, getDuration, getPreferredChars,
-  hydrateSettings, onSettingsChange,
+  hydrateSettings, onSettingsChange, setKeyPrefix as setSettingsKeyPrefix,
 } from './settings.js'
 import { fetchRoom, saveRoom, createDebouncedSave } from './sync.js'
 import { showToast } from './toast.js'
@@ -12,6 +12,13 @@ const RESERVED = new Set(['sample', 'api', 'assets', 'src', 'public'])
 
 let currentSlug = null
 let debouncedSave = null
+
+function applyKeyPrefix(slug) {
+  const prefix = slug ? slug + '-' : ''
+  setNamesKeyPrefix(prefix)
+  setCycleKeyPrefix(prefix)
+  setSettingsKeyPrefix(prefix)
+}
 
 export function getRoomSlug() {
   return currentSlug
@@ -60,6 +67,7 @@ export async function initRoom() {
 
   currentSlug = slug
   debouncedSave = createDebouncedSave(300)
+  applyKeyPrefix(slug)
 
   try {
     const data = await fetchRoom(slug)
@@ -80,6 +88,21 @@ export async function initRoom() {
   onSettingsChange(triggerSync)
 
   return true
+}
+
+export async function syncBeforeStart() {
+  if (!currentSlug) return false
+
+  try {
+    const data = await fetchRoom(currentSlug)
+    if (data) {
+      hydrateFromRoom(data)
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
 }
 
 export function generateSlug() {
