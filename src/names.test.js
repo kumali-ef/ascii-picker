@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getNames, addNames, editName, deleteName, setNames, onNamesChange, _resetForTest } from './names.js'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { getNames, addNames, editName, deleteName, setNames, onNamesChange, setKeyPrefix, _resetForTest } from './names.js'
 
 beforeEach(() => {
   _resetForTest()
@@ -154,5 +154,44 @@ describe('onNamesChange', () => {
     unsub()
     addNames('Alice')
     expect(cb).not.toHaveBeenCalled()
+  })
+})
+
+describe('setKeyPrefix', () => {
+  const store = {}
+  beforeEach(() => {
+    Object.keys(store).forEach(k => delete store[k])
+    globalThis.localStorage = {
+      getItem: (k) => store[k] ?? null,
+      setItem: (k, v) => { store[k] = String(v) },
+      removeItem: (k) => { delete store[k] },
+    }
+    _resetForTest()
+  })
+
+  afterEach(() => {
+    delete globalThis.localStorage
+    _resetForTest()
+  })
+
+  it('isolates storage by prefix', () => {
+    addNames('Alice')
+    expect(getNames()).toEqual(['Alice'])
+
+    setKeyPrefix('room1-')
+    expect(getNames()).toEqual([])
+
+    addNames('Bob')
+    expect(getNames()).toEqual(['Bob'])
+
+    setKeyPrefix('')
+    expect(getNames()).toEqual(['Alice'])
+  })
+
+  it('resets for test clears prefix too', () => {
+    setKeyPrefix('room1-')
+    addNames('Alice')
+    _resetForTest()
+    expect(getNames()).toEqual([])
   })
 })

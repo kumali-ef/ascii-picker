@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'ascii-picker-names'
+let keyPrefix = ''
 
 let names = []
 let changeListeners = []
@@ -9,7 +10,7 @@ function notifyChange() {
 
 function loadFromStorage() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(keyPrefix + STORAGE_KEY)
     if (stored) names = JSON.parse(stored)
   } catch {
     // localStorage unavailable or corrupt — use in-memory
@@ -18,7 +19,7 @@ function loadFromStorage() {
 
 function saveToStorage() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(names))
+    localStorage.setItem(keyPrefix + STORAGE_KEY, JSON.stringify(names))
   } catch {
     // localStorage unavailable — silent fallback
   }
@@ -74,6 +75,12 @@ export function setNames(arr) {
   saveToStorage()
 }
 
+export function setKeyPrefix(prefix) {
+  keyPrefix = prefix
+  names = []
+  loadFromStorage()
+}
+
 export function onNamesChange(cb) {
   changeListeners.push(cb)
   return () => {
@@ -83,6 +90,7 @@ export function onNamesChange(cb) {
 
 export function _resetForTest() {
   names = []
+  keyPrefix = ''
   changeListeners = []
 }
 
