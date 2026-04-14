@@ -8,6 +8,7 @@ const MIN_DURATION = 2
 const MAX_DURATION = 15
 const DEFAULT_TITLE = 'ASCII PICKER'
 const DEFAULT_PREFERRED_CHARS = 'EFEKTA'
+let keyPrefix = ''
 
 export const GRID_PRESETS = {
   small:  { cols: 30, rows: 16, label: 'small' },
@@ -27,19 +28,19 @@ function notifyChange() {
 
 function loadFromStorage() {
   try {
-    const storedDuration = localStorage.getItem(DURATION_KEY)
+    const storedDuration = localStorage.getItem(keyPrefix + DURATION_KEY)
     if (storedDuration !== null) {
       duration = clampDuration(Number(storedDuration))
     }
-    const storedGrid = localStorage.getItem(GRID_KEY)
+    const storedGrid = localStorage.getItem(keyPrefix + GRID_KEY)
     if (storedGrid && GRID_PRESETS[storedGrid]) {
       gridLabel = storedGrid
     }
-    const storedTitle = localStorage.getItem(TITLE_KEY)
+    const storedTitle = localStorage.getItem(keyPrefix + TITLE_KEY)
     if (storedTitle !== null) {
       title = storedTitle
     }
-    const storedChars = localStorage.getItem(PREFERRED_CHARS_KEY)
+    const storedChars = localStorage.getItem(keyPrefix + PREFERRED_CHARS_KEY)
     if (storedChars !== null) {
       preferredChars = storedChars
     }
@@ -50,7 +51,7 @@ function loadFromStorage() {
 
 function saveToStorage(key, value) {
   try {
-    localStorage.setItem(key, String(value))
+    localStorage.setItem(keyPrefix + key, String(value))
   } catch {
     // localStorage unavailable
   }
@@ -115,6 +116,15 @@ export function hydrateSettings(data) {
   }
 }
 
+export function setKeyPrefix(prefix) {
+  keyPrefix = prefix
+  duration = DEFAULT_DURATION
+  gridLabel = 'large'
+  title = DEFAULT_TITLE
+  preferredChars = DEFAULT_PREFERRED_CHARS
+  loadFromStorage()
+}
+
 export function onSettingsChange(cb) {
   changeListeners.push(cb)
   return () => {
@@ -127,6 +137,7 @@ export function _resetForTest() {
   gridLabel = 'large'
   title = DEFAULT_TITLE
   preferredChars = DEFAULT_PREFERRED_CHARS
+  keyPrefix = ''
   changeListeners = []
 }
 

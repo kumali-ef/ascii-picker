@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   getDuration, setDuration,
   getGridSize, setGridSize,
@@ -6,7 +6,7 @@ import {
   getPreferredChars, setPreferredChars,
   GRID_PRESETS,
   hydrateSettings, onSettingsChange,
-  _resetForTest
+  setKeyPrefix, _resetForTest
 } from './settings.js'
 
 beforeEach(() => {
@@ -159,5 +159,50 @@ describe('onSettingsChange', () => {
     unsub()
     setTitle('Ignored')
     expect(cb).not.toHaveBeenCalled()
+  })
+})
+
+describe('setKeyPrefix', () => {
+  const store = {}
+  beforeEach(() => {
+    Object.keys(store).forEach(k => delete store[k])
+    globalThis.localStorage = {
+      getItem: (k) => store[k] ?? null,
+      setItem: (k, v) => { store[k] = String(v) },
+      removeItem: (k) => { delete store[k] },
+    }
+    _resetForTest()
+  })
+
+  afterEach(() => {
+    delete globalThis.localStorage
+    _resetForTest()
+  })
+
+  it('isolates settings storage by prefix', () => {
+    setTitle('Root Title')
+    setDuration(10)
+    expect(getTitle()).toBe('Root Title')
+    expect(getDuration()).toBe(10)
+
+    setKeyPrefix('room1-')
+    expect(getTitle()).toBe('ASCII PICKER')
+    expect(getDuration()).toBe(5)
+
+    setTitle('Room Title')
+    setDuration(8)
+    expect(getTitle()).toBe('Room Title')
+    expect(getDuration()).toBe(8)
+
+    setKeyPrefix('')
+    expect(getTitle()).toBe('Root Title')
+    expect(getDuration()).toBe(10)
+  })
+
+  it('resets for test clears prefix too', () => {
+    setKeyPrefix('room1-')
+    setTitle('Room Title')
+    _resetForTest()
+    expect(getTitle()).toBe('ASCII PICKER')
   })
 })
